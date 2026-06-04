@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String    @id @default(uuid())
+  nome      String
+  email     String    @unique
+  senha     String
+  perfil    Perfil    @default(ADMIN)
+  obras     Obra[]
+  orcamentos Orcamento[]
+  empresa   Empresa?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Cliente {
+  id        String   @id @default(uuid())
+  nome      String
+  telefone  String?
+  endereco  String?
+  obras     Obra[]
+  orcamentos  Orcamento[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+}
+
+model Obra {
+  id          String       @id @default(uuid())
+  nome        String
+  endereco    String?
+  status      StatusObra   @default(EM_ANDAMENTO)
+  etapaAtual  EtapaObra    @default(FUNDACAO)
+  dataInicio  DateTime     @default(now())
+  dataFim     DateTime?
+  clienteId   String
+  cliente     Cliente      @relation(fields: [clienteId], references: [id])
+  usuarioId   String
+  usuario     Usuario      @relation(fields: [usuarioId], references: [id])
+  lancamentos Lancamento[]
+  maoDeObra   MaoDeObra[]
+  presencas   Presenca[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Lancamento {
+  id        String           @id @default(uuid())
+  descricao String
+  valor     Float
+  tipo      TipoLancamento
+  categoria String?
+  origem    OrigemLancamento @default(MANUAL)
+  obraId    String
+  obra      Obra             @relation(fields: [obraId], references: [id])
+  createdAt DateTime         @default(now())
+}
+
+model MaoDeObra {
+  id              String   @id @default(uuid())
+  descricao       String
+  diasTrabalhados Int
+  valorPorDia     Float
+  total           Float
+  obraId          String
+  obra            Obra     @relation(fields: [obraId], references: [id])
+  createdAt       DateTime @default(now())
+}
+
+enum Perfil {
+  ADMIN
+  AJUDANTE
+}
+
+enum StatusObra {
+  EM_ANDAMENTO
+  CONCLUIDA
+  ORCAMENTO
+  PAUSADA
+}
+
+enum EtapaObra {
+  FUNDACAO
+  ALVENARIA
+  REBOCO
+  ACABAMENTO
+  CONCLUIDA
+}
+
+enum TipoLancamento {
+  ENTRADA
+  SAIDA
+}
+
+enum OrigemLancamento {
+  MANUAL
+  VOZ
+  IA
+}
+
+enum TipoContrato {
+  DIARISTA
+  EMPREITEIRO
+}
+
+model Trabalhador {
+  id            String       @id @default(uuid())
+  nome          String
+  funcao        String
+  tipoContrato  TipoContrato @default(DIARISTA)
+  valorDia      Float
+  ativo         Boolean      @default(true)
+  presencas     Presenca[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Presenca {
+  id              String       @id @default(uuid())
+  data            DateTime     @default(now())
+  diasTrabalhados Int          @default(1)
+  valorDia        Float
+  total           Float
+  tipoContrato    TipoContrato @default(DIARISTA)
+  valorEmpreita   Float?
+  descricaoServico String?
+  observacao      String?
+  trabalhadorId   String
+  trabalhador     Trabalhador  @relation(fields: [trabalhadorId], references: [id])
+  obraId          String
+  obra            Obra         @relation(fields: [obraId], references: [id])
+  createdAt       DateTime     @default(now())
+}
+
+model Orcamento {
+  id              String          @id @default(uuid())
+  titulo          String
+  descricao       String?
+  valorEstimado   Float?
+  valorFinal      Float?
+  status          StatusOrcamento @default(PENDENTE)
+  validadeEmDias  Int             @default(30)
+  observacoes     String?
+  condicoesPagamento String?
+  clienteId       String
+  cliente         Cliente         @relation(fields: [clienteId], references: [id])
+  usuarioId       String
+  usuario         Usuario         @relation(fields: [usuarioId], references: [id])
+  itens           ItemOrcamento[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model ItemOrcamento {
+  id          String    @id @default(uuid())
+  descricao   String
+  quantidade  Float
+  valorUnitario Float
+  total       Float
+  orcamentoId String
+  orcamento   Orcamento @relation(fields: [orcamentoId], references: [id])
+  createdAt   DateTime  @default(now())
+}
+
+enum StatusOrcamento {
+  PENDENTE
+  APROVADO
+  RECUSADO
+  EXPIRADO
+}
+
+model Empresa {
+  id            String   @id @default(uuid())
+  razaoSocial   String
+  nomeFantasia  String?
+  cnpj          String   @unique
+  telefone      String?
+  email         String?
+  endereco      String?
+  cidade        String?
+  estado        String?
+  cep           String?
+  logo          String?  // URL da logo futuramente
+  usuarioId     String   @unique
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
