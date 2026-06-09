@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { PrismaService } from '../prisma/prisma.service';
+import { StatusMaterial } from '@prisma/client'; // 👈 Importando o Enum do material
 
 @Injectable()
 export class IaService {
@@ -28,12 +29,12 @@ Texto: "${texto}"
 Responda APENAS com um JSON válido, sem markdown, sem explicações, seguindo esse formato:
 
 {
-  "intencao": "LANCAMENTO" | "PRESENCA" | "ETAPA" | "ORCAMENTO" | "DESCONHECIDO",
+  "intencao": "LANCAMENTO" | "PRESENCA" | "ETAPA" | "ORCAMENTO" | "MATERIAL" | "DESCONHECIDO",
   "dados": {
     "descricao": "string",
     "valor": number,
     "tipo": "ENTRADA" | "SAIDA",
-    "categoria": "Materiais" | "Ferramentas" | "Transporte" | "Alimentacao" | "Outros",
+    "categoria": "Materiais" | "Equipamentos" | "Transporte" | "Alimentacao" | "Outros",
     "nomes": ["string"],
     "diasTrabalhados": number,
     "valorDia": number,
@@ -46,8 +47,9 @@ Responda APENAS com um JSON válido, sem markdown, sem explicações, seguindo e
 }
 
 Regras:
+- Se o usuário quiser ADICIONAR algo a uma lista de compras ou lista de materiais (ex: "adicionar 50 sacos de cimento na lista", "coloca areia na lista") = MATERIAL
 - Se mencionar receber dinheiro, pagamento de cliente = ENTRADA
-- Se mencionar gastar, comprar, pagar material = SAIDA
+- Se mencionar gastar, comprar na hora, pagar material já comprado = SAIDA
 - Se mencionar trabalharam, trabalhou, dias = PRESENCA
 - Se mencionar etapa, fase, começar, terminar fundação/alvenaria/reboco/acabamento = ETAPA
 - Se mencionar orçamento, preciso fazer, quanto vai custar = ORCAMENTO
@@ -99,6 +101,9 @@ Regras:
 
       case 'ORCAMENTO':
         return this.executarOrcamento(processado.dados, obraId, usuarioId);
+
+      case 'MATERIAL': // 👈 Adicionado o direcionamento para a Lista de Compras
+        return this.executarMaterial(processado.dados, obraId);
 
       default:
         return {
@@ -214,6 +219,24 @@ Regras:
       intencao: 'ORCAMENTO',
       mensagem: `✅ Orçamento "${dados.titulo}" criado com valor estimado de R$ ${valorEstimado}`,
       dados: orcamento,
+    };
+  }
+
+  // 👈 NOVA FUNÇÃO: Cria o item diretamente na lista de compras da obra usando a voz
+  private async executarMaterial(dados: any, obraId: string) {
+    const material = await this.prisma.material.create({
+      data: {
+        descricao: dados.descricao,
+        status: StatusMaterial.PENDENTE, // Sempre entra como pendente esperando o mestre dar o check
+        obraId,
+      },
+    });
+
+    return {
+      sucesso: true,
+      intencao: 'MATERIAL',
+      mensagem: `🛒 Adicionado à lista de compras: "${dados.descricao}"`,
+      dados: material,
     };
   }
 }
