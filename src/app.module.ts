@@ -13,10 +13,8 @@ import { OrcamentosModule } from './orcamentos/orcamentos.module';
 import { EmpresaModule } from './empresa/empresa.module';
 import { RelatoriosModule } from './relatorios/relatorios.module';
 import { AdiantamentosController } from './adiantamentos/adiantamentos.controller';
-import { DiariosObraModule } from './diarios-obra/diarios-obra.module';
 import { LocacoesModule } from './locacoes/locacoes.module';
 import { AdiantamentosModule } from './adiantamentos/adiantamentos.module';
-import { EquipamentosModule } from './equipamentos/equipamentos.module';
 import { MateriaisModule } from './materiais/materiais.module';
 
 @Module({
@@ -34,10 +32,8 @@ import { MateriaisModule } from './materiais/materiais.module';
     OrcamentosModule,
     EmpresaModule,
     RelatoriosModule,
-    DiariosObraModule,
     LocacoesModule,
     AdiantamentosModule,
-    EquipamentosModule,
     MateriaisModule,
   ],
   controllers: [AdiantamentosController],

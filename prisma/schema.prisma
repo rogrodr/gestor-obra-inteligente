@@ -48,8 +48,6 @@ model Obra {
   presencas     Presenca[]
   adiantamentos Adiantamento[]
   locacoes      Locacao[]
-  diariosObra   DiarioObra[]
-  equipamentos  Equipamento[]
   materiais     Material[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -123,7 +121,6 @@ model Trabalhador {
   ativo         Boolean        @default(true)
   presencas     Presenca[]
   adiantamentos Adiantamento[]
-  equipamentos  Equipamento[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -224,45 +221,10 @@ model Locacao {
   obra            Obra      @relation(fields: [obraId], references: [id], onDelete: Cascade)
 }
 
-model DiarioObra {
-  id         String   @id @default(uuid())
-  data       DateTime @default(now())
-  clima      String
-  atividades String
-  fotos      Foto[]
-  obraId     String
-  obra       Obra     @relation(fields: [obraId], references: [id], onDelete: Cascade)
-}
-
-model Foto {
-  id           String     @id @default(uuid())
-  url          String
-  diarioObraId String
-  diarioObra   DiarioObra @relation(fields: [diarioObraId], references: [id], onDelete: Cascade)
-}
-
-enum StatusEquipamento {
-  DISPONIVEL
-  EM_USO
-  MANUTENCAO
-  BAIXADO
-}
-
 enum StatusMaterial {
   PENDENTE
   COMPRADO
-}
-
-model Equipamento {
-  id            String            @id @default(uuid())
-  nome          String
-  status        StatusEquipamento @default(DISPONIVEL) // 👈 Usando Enum
-  trabalhadorId String?
-  trabalhador   Trabalhador?      @relation(fields: [trabalhadorId], references: [id], onDelete: SetNull)
-  obraId        String?
-  obra          Obra?             @relation(fields: [obraId], references: [id], onDelete: SetNull)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  CANCELADO
 }
 
 model Material {
