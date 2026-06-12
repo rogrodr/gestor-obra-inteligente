@@ -1,6 +1,6 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, Min } from 'class-validator';
 
-export class CriarMaoDeObraDto {
+export class CriarServicoAvulsoDto {
   @IsNotEmpty({ message: 'Descrição é obrigatória' })
   @IsString()
   descricao: string;

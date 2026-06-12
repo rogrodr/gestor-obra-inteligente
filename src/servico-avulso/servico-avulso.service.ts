@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CriarMaoDeObraDto } from './dto/criar-mao-de-obra.dto';
+import { CriarServicoAvulsoDto } from './dto/criar-servico-avulso.dto';
 
 @Injectable()
-export class MaoDeObraService {
+export class ServicoAvulsoService {
   constructor(private prisma: PrismaService) {}
 
-  async criar(dto: CriarMaoDeObraDto) {
+  async criar(dto: CriarServicoAvulsoDto) {
     const total = dto.diasTrabalhados * dto.valorPorDia;
 
-    return this.prisma.maoDeObra.create({
+    return this.prisma.servicoAvulso.create({
       data: {
         ...dto,
         total,
@@ -19,17 +19,17 @@ export class MaoDeObraService {
   }
 
   async buscarPorObra(obraId: string) {
-    return this.prisma.maoDeObra.findMany({
+    return this.prisma.servicoAvulso.findMany({
       where: { obraId },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async remover(id: string) {
-    const maoDeObra = await this.prisma.maoDeObra.findUnique({ where: { id } });
-    if (!maoDeObra) throw new NotFoundException('Registro não encontrado');
+    const servicoAvulso = await this.prisma.servicoAvulso.findUnique({ where: { id } });
+    if (!servicoAvulso) throw new NotFoundException('Registro não encontrado');
 
-    await this.prisma.maoDeObra.delete({ where: { id } });
+    await this.prisma.servicoAvulso.delete({ where: { id } });
     return { mensagem: 'Registro removido com sucesso' };
   }
 }

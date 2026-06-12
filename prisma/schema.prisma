@@ -44,7 +44,7 @@ model Obra {
   usuarioId     String
   usuario       Usuario        @relation(fields: [usuarioId], references: [id])
   lancamentos   Lancamento[]
-  maoDeObra     MaoDeObra[]
+  servicosAvulsos ServicoAvulso[]
   presencas     Presenca[]
   adiantamentos Adiantamento[]
   locacoes      Locacao[]
@@ -65,7 +65,7 @@ model Lancamento {
   createdAt DateTime         @default(now())
 }
 
-model MaoDeObra {
+model ServicoAvulso {
   id              String   @id @default(uuid())
   descricao       String
   diasTrabalhados Int

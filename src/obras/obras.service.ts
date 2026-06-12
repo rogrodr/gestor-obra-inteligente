@@ -28,7 +28,7 @@ export class ObrasService {
           select: { id: true, nome: true, telefone: true },
         },
         _count: {
-          select: { lancamentos: true, maoDeObra: true },
+          select: { lancamentos: true, servicosAvulsos: true },
         },
       },
     });
@@ -42,7 +42,7 @@ export class ObrasService {
         lancamentos: {
           orderBy: { createdAt: 'desc' },
         },
-        maoDeObra: {
+        servicosAvulsos: {
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -80,16 +80,16 @@ export class ObrasService {
       .filter((l) => l.tipo === 'SAIDA')
       .reduce((acc, l) => acc + l.valor, 0);
 
-    const totalMaoDeObra = obra.maoDeObra
+    const totalServicosAvulsos = obra.servicosAvulsos
       .reduce((acc, m) => acc + m.total, 0);
 
     return {
       obra: { id: obra.id, nome: obra.nome, status: obra.status, etapaAtual: obra.etapaAtual },
       financeiro: {
         totalEntradas: entradas,
-        totalSaidas: saidas + totalMaoDeObra,
-        totalMaoDeObra,
-        saldo: entradas - saidas - totalMaoDeObra,
+        totalSaidas: saidas + totalServicosAvulsos,
+        totalServicosAvulsos, // Renomeado no retorno do JSON também
+        saldo: entradas - saidas - totalServicosAvulsos,
       },
     };
   }
@@ -99,7 +99,7 @@ export class ObrasService {
       where: { usuarioId },
       include: {
         lancamentos: true,
-        maoDeObra: true,
+        servicosAvulsos: true,
         presencas: true,
         cliente: { select: { id: true, nome: true } },
       },
@@ -117,7 +117,7 @@ export class ObrasService {
         if (l.tipo === 'ENTRADA') totalEntradas += l.valor;
         if (l.tipo === 'SAIDA') totalSaidas += l.valor;
       });
-      obra.maoDeObra.forEach((m) => (totalSaidas += m.total));
+      obra.servicosAvulsos.forEach((m) => (totalSaidas += m.total));
       obra.presencas.forEach((p) => (totalSaidas += p.total));
     });
 
@@ -157,7 +157,7 @@ export class ObrasService {
       ultimosLancamentos: todosLancamentos,
       obrasRecentes,
     };
-  } // <-- Fechamento do método dashboard corrigido
+  } 
 
   async fluxoCaixaMensal(usuarioId: string, ano: number) {
     const inicio = new Date(ano, 0, 1);
@@ -188,4 +188,4 @@ export class ObrasService {
 
     return { ano, meses };
   }
-} 
+}

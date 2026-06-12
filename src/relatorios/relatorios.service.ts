@@ -65,7 +65,7 @@ export class RelatoriosService {
       include: {
         cliente: true,
         lancamentos: { orderBy: { createdAt: 'desc' } },
-        maoDeObra: { orderBy: { createdAt: 'desc' } },
+        servicosAvulsos: { orderBy: { createdAt: 'desc' } }, // Corrigido aqui
         presencas: {
           include: { trabalhador: true },
           orderBy: { createdAt: 'desc' },
@@ -85,13 +85,13 @@ export class RelatoriosService {
       .filter((l) => l.tipo === 'SAIDA')
       .reduce((acc, l) => acc + l.valor, 0);
 
-    const totalMaoDeObra = obra.maoDeObra
+    const totalServicosAvulsos = obra.servicosAvulsos // Corrigido aqui
       .reduce((acc, m) => acc + m.total, 0);
 
     const totalPresencas = obra.presencas
       .reduce((acc, p) => acc + p.total, 0);
 
-    const saldo = entradas - saidas - totalMaoDeObra - totalPresencas;
+    const saldo = entradas - saidas - totalServicosAvulsos - totalPresencas; // Corrigido aqui
 
     const doc = new PDFDocument({ margin: 50 });
 
@@ -123,7 +123,7 @@ export class RelatoriosService {
     doc.fontSize(10).font('Helvetica')
        .text(`Total recebido: ${this.formatarMoeda(entradas)}`)
        .text(`Total gasto com materiais: ${this.formatarMoeda(saidas)}`)
-       .text(`Total mão de obra avulsa: ${this.formatarMoeda(totalMaoDeObra)}`)
+       .text(`Total serviços avulsos: ${this.formatarMoeda(totalServicosAvulsos)}`) // Renomeado o texto no PDF
        .text(`Total mão de obra equipe: ${this.formatarMoeda(totalPresencas)}`);
 
     doc.moveDown(0.5);

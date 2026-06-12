@@ -6,7 +6,7 @@ import { UsuariosModule } from './usuarios/usuarios.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { ObrasModule } from './obras/obras.module';
 import { LancamentosModule } from './lancamentos/lancamentos.module';
-import { MaoDeObraModule } from './mao-de-obra/mao-de-obra.module';
+import { ServicoAvulsoModule } from './servico-avulso/servico-avulso.module';
 import { IaModule } from './ia/ia.module';
 import { TrabalhadoresModule } from './trabalhadores/trabalhadores.module';
 import { OrcamentosModule } from './orcamentos/orcamentos.module';
@@ -26,7 +26,7 @@ import { MateriaisModule } from './materiais/materiais.module';
     ClientesModule,
     ObrasModule,
     LancamentosModule,
-    MaoDeObraModule,
+    ServicoAvulsoModule,
     IaModule,
     TrabalhadoresModule,
     OrcamentosModule,
