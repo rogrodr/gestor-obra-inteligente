@@ -13,11 +13,62 @@ export class LancamentosService {
     });
   }
 
-  async buscarPorObra(obraId: string) {
-    return this.prisma.lancamento.findMany({
-      where: { obraId },
+  // Busca lançamentos por obra com filtros opcionais de categoria e tipo
+  async buscarPorObra(
+    obraId: string,
+    categoria?: string,
+    tipo?: 'ENTRADA' | 'SAIDA',
+  ) {
+    const lancamentos = await this.prisma.lancamento.findMany({
+      where: {
+        obraId,
+        ...(categoria ? { categoria } : {}),
+        ...(tipo ? { tipo } : {}),
+      },
       orderBy: { createdAt: 'desc' },
     });
+
+    const totalEntradas = lancamentos
+      .filter((l) => l.tipo === 'ENTRADA')
+      .reduce((acc, l) => acc + l.valor, 0);
+
+    const totalSaidas = lancamentos
+      .filter((l) => l.tipo === 'SAIDA')
+      .reduce((acc, l) => acc + l.valor, 0);
+
+    return {
+      lancamentos,
+      totalEntradas,
+      totalSaidas,
+      saldo: totalEntradas - totalSaidas,
+      total: lancamentos.length,
+    };
+  }
+
+  // Busca lançamentos agrupados por categoria para uma obra
+  async resumoPorCategoria(obraId: string) {
+    const lancamentos = await this.prisma.lancamento.findMany({
+      where: { obraId, tipo: 'SAIDA' },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Agrupa por categoria e soma os valores
+    const categorias = lancamentos.reduce(
+      (acc, l) => {
+        const cat = l.categoria ?? 'Outros';
+        if (!acc[cat]) acc[cat] = { categoria: cat, total: 0, quantidade: 0 };
+        acc[cat].total += l.valor;
+        acc[cat].quantidade += 1;
+        return acc;
+      },
+      {} as Record<string, { categoria: string; total: number; quantidade: number }>,
+    );
+
+    return {
+      obraId,
+      categorias: Object.values(categorias).sort((a, b) => b.total - a.total),
+      totalGeral: lancamentos.reduce((acc, l) => acc + l.valor, 0),
+    };
   }
 
   async remover(id: string) {
@@ -29,8 +80,6 @@ export class LancamentosService {
   }
 
   async processarVoz(texto: string, obraId: string) {
-    // Esse método será chamado pelo módulo de IA
-    // Por enquanto retorna o texto para ser processado
     return { texto, obraId };
   }
 }

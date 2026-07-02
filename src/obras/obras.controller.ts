@@ -67,4 +67,10 @@ export class ObrasController {
   resumoFinanceiro(@Param('id') id: string, @Req() req: any) {
     return this.obrasService.resumoFinanceiro(id, req.user.id);
   }
+
+
+  @Get(':id/pendencias')
+pendencias(@Param('id') id: string, @Req() req: any) {
+  return this.obrasService.pendencias(id, req.user.id);
+}
 }

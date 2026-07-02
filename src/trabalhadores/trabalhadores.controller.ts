@@ -7,9 +7,11 @@ import {
   Param,
   UseGuards,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { TrabalhadoresService } from './trabalhadores.service';
 import { CriarTrabalhadorDto } from './dto/criar-trabalhador.dto';
+import { AtualizarTrabalhadorDto } from './dto/atualizar-trabalhador.dto';
 import { CriarPresencaDto } from './dto/criar-presenca.dto';
 import { JwtGuard } from '../autenticacao/guards/jwt.guard';
 
@@ -30,19 +32,8 @@ export class TrabalhadoresController {
     return this.trabalhadoresService.buscarTodos();
   }
 
-  // GET /api/trabalhadores/:id
-  @Get(':id')
-  buscarPorId(@Param('id') id: string) {
-    return this.trabalhadoresService.buscarPorId(id);
-  }
-
-  // PATCH /api/trabalhadores/:id/desativar
-  @Patch(':id/desativar')
-  desativar(@Param('id') id: string) {
-    return this.trabalhadoresService.desativar(id);
-  }
-
   // POST /api/trabalhadores/presenca
+  // ⚠️ Precisa vir ANTES de :id para não conflitar
   @Post('presenca')
   registrarPresenca(@Body() dto: CriarPresencaDto) {
     return this.trabalhadoresService.registrarPresenca(dto);
@@ -54,15 +45,43 @@ export class TrabalhadoresController {
     return this.trabalhadoresService.buscarPresencasPorObra(obraId);
   }
 
+  // DELETE /api/trabalhadores/presenca/:id
+  @Delete('presenca/:id')
+  removerPresenca(@Param('id') id: string) {
+    return this.trabalhadoresService.removerPresenca(id);
+  }
+
+  // GET /api/trabalhadores/:id
+  @Get(':id')
+  buscarPorId(@Param('id') id: string) {
+    return this.trabalhadoresService.buscarPorId(id);
+  }
+
+  // PATCH /api/trabalhadores/:id
+  @Patch(':id')
+  atualizar(@Param('id') id: string, @Body() dto: AtualizarTrabalhadorDto) {
+    return this.trabalhadoresService.atualizar(id, dto);
+  }
+
+  // PATCH /api/trabalhadores/:id/desativar
+  @Patch(':id/desativar')
+  desativar(@Param('id') id: string) {
+    return this.trabalhadoresService.desativar(id);
+  }
+
   // GET /api/trabalhadores/:id/presencas
   @Get(':id/presencas')
   buscarPresencasPorTrabalhador(@Param('id') id: string) {
     return this.trabalhadoresService.buscarPresencasPorTrabalhador(id);
   }
 
-  // DELETE /api/trabalhadores/presenca/:id
-  @Delete('presenca/:id')
-  removerPresenca(@Param('id') id: string) {
-    return this.trabalhadoresService.removerPresenca(id);
+  // GET /api/trabalhadores/:id/extrato?obraId=xxx (obraId opcional)
+  // Retorna histórico consolidado: presenças + adiantamentos + saldo líquido
+  @Get(':id/extrato')
+  extrato(
+    @Param('id') id: string,
+    @Query('obraId') obraId?: string,
+  ) {
+    return this.trabalhadoresService.extrato(id, obraId);
   }
 }

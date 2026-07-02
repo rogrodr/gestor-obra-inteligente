@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CriarOrcamentoDto } from './dto/criar-orcamento.dto';
 import { AtualizarOrcamentoDto } from './dto/atualizar-orcamento.dto';
@@ -8,6 +8,13 @@ export class OrcamentosService {
   constructor(private prisma: PrismaService) {}
 
   async criar(dto: CriarOrcamentoDto, usuarioId: string) {
+    // Precisa ter cliente cadastrado OU pelo menos um nome temporário
+    if (!dto.clienteId && !dto.nomeClienteTemporario) {
+      throw new BadRequestException(
+        'Informe um cliente cadastrado ou pelo menos um nome temporário para o orçamento.',
+      );
+    }
+
     const itensComTotal = dto.itens?.map((item) => ({
       ...item,
       total: item.quantidade * item.valorUnitario,
@@ -21,6 +28,8 @@ export class OrcamentosService {
         descricao: dto.descricao,
         valorEstimado,
         clienteId: dto.clienteId,
+        nomeClienteTemporario: dto.clienteId ? undefined : dto.nomeClienteTemporario,
+        telefoneClienteTemporario: dto.clienteId ? undefined : dto.telefoneClienteTemporario,
         usuarioId,
         itens: {
           create: itensComTotal,
@@ -70,8 +79,6 @@ export class OrcamentosService {
   }
 
   async buscarSugestoes(usuarioId: string, titulo: string) {
-    // Busca orçamentos anteriores com título similar
-    // Será usado pela IA para sugerir valores
     return this.prisma.orcamento.findMany({
       where: {
         usuarioId,
@@ -84,13 +91,27 @@ export class OrcamentosService {
     });
   }
 
+  // Vincula um cliente real a um orçamento que foi criado como rascunho
+  async vincularCliente(id: string, clienteId: string, usuarioId: string) {
+    await this.buscarPorId(id, usuarioId);
+
+    return this.prisma.orcamento.update({
+      where: { id },
+      data: {
+        clienteId,
+        nomeClienteTemporario: null,
+        telefoneClienteTemporario: null,
+      },
+      include: { cliente: true, itens: true },
+    });
+  }
+
   async atualizar(id: string, dto: AtualizarOrcamentoDto, usuarioId: string) {
     await this.buscarPorId(id, usuarioId);
 
     const { itens, ...resto } = dto;
 
     if (itens && itens.length > 0) {
-      // Remove itens antigos e cria novos
       await this.prisma.itemOrcamento.deleteMany({ where: { orcamentoId: id } });
 
       const itensComTotal = itens.map((item) => ({

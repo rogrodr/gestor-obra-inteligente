@@ -13,16 +13,29 @@ export class AtualizarOrcamentoDto {
   descricao?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(0)
+  @IsString()
+  clienteId?: string;
+
+  // Permite vincular um cliente real depois que o orçamento já existia como rascunho
+  @IsOptional()
+  @IsString()
+  nomeClienteTemporario?: string;
+
+  @IsOptional()
+  @IsString()
+  telefoneClienteTemporario?: string;
+
+  @IsOptional()
+  @IsNumber({}, { message: 'O valor final deve ser um número' })
+  @Min(0, { message: 'O valor final não pode ser negativo' })
   valorFinal?: number;
 
   @IsOptional()
-  @IsEnum(StatusOrcamento)
+  @IsEnum(StatusOrcamento, { message: 'Status inválido' })
   status?: StatusOrcamento;
 
   @IsOptional()
-  @IsArray()
+  @IsArray({ message: 'itens deve ser uma matriz (array)' })
   @ValidateNested({ each: true })
   @Type(() => ItemOrcamentoDto)
   itens?: ItemOrcamentoDto[];

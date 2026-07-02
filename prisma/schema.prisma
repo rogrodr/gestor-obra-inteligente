@@ -18,6 +18,7 @@ model Usuario {
   empresa    Empresa?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+  contasReceber ContaReceber[]
 }
 
 model Cliente {
@@ -29,28 +30,30 @@ model Cliente {
   orcamentos Orcamento[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+  contasReceber ContaReceber[]
 }
 
 model Obra {
-  id            String         @id @default(uuid())
-  nome          String
-  endereco      String?
-  status        StatusObra     @default(EM_ANDAMENTO)
-  etapaAtual    EtapaObra      @default(FUNDACAO)
-  dataInicio    DateTime       @default(now())
-  dataFim       DateTime?
-  clienteId     String
-  cliente       Cliente        @relation(fields: [clienteId], references: [id])
-  usuarioId     String
-  usuario       Usuario        @relation(fields: [usuarioId], references: [id])
-  lancamentos   Lancamento[]
+  id              String          @id @default(uuid())
+  nome            String
+  endereco        String?
+  status          StatusObra      @default(EM_ANDAMENTO)
+  etapaAtual      EtapaObra       @default(FUNDACAO)
+  dataInicio      DateTime        @default(now())
+  dataFim         DateTime?
+  clienteId       String
+  cliente         Cliente         @relation(fields: [clienteId], references: [id])
+  usuarioId       String
+  usuario         Usuario         @relation(fields: [usuarioId], references: [id])
+  lancamentos     Lancamento[]
   servicosAvulsos ServicoAvulso[]
-  presencas     Presenca[]
-  adiantamentos Adiantamento[]
-  locacoes      Locacao[]
-  materiais     Material[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  presencas       Presenca[]
+  adiantamentos   Adiantamento[]
+  locacoes        Locacao[]
+  materiais       Material[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  contasReceber ContaReceber[]
 }
 
 model Lancamento {
@@ -132,6 +135,7 @@ model Presenca {
   valorDia         Float
   total            Float
   tipoContrato     TipoContrato @default(DIARISTA)
+  pago             Boolean      @default(false)
   valorEmpreita    Float?
   descricaoServico String?
   observacao       String?
@@ -143,22 +147,24 @@ model Presenca {
 }
 
 model Orcamento {
-  id                 String          @id @default(uuid())
-  titulo             String
-  descricao          String?
-  valorEstimado      Float?
-  valorFinal         Float?
-  status             StatusOrcamento @default(PENDENTE)
-  validadeEmDias     Int             @default(30)
-  observacoes        String?
-  condicoesPagamento String?
-  clienteId          String
-  cliente            Cliente         @relation(fields: [clienteId], references: [id])
-  usuarioId          String
-  usuario            Usuario         @relation(fields: [usuarioId], references: [id])
-  itens              ItemOrcamento[]
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  id                        String          @id @default(uuid())
+  titulo                    String
+  descricao                 String?
+  valorEstimado             Float?
+  valorFinal                Float?
+  status                    StatusOrcamento @default(PENDENTE)
+  validadeEmDias            Int             @default(30)
+  observacoes               String?
+  condicoesPagamento        String?
+  clienteId                 String?
+  cliente                   Cliente?        @relation(fields: [clienteId], references: [id])
+  nomeClienteTemporario     String?
+  telefoneClienteTemporario String?
+  usuarioId                 String
+  usuario                   Usuario         @relation(fields: [usuarioId], references: [id])
+  itens                     ItemOrcamento[]
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
 }
 
 model ItemOrcamento {
@@ -235,4 +241,39 @@ model Material {
   obra      Obra           @relation(fields: [obraId], references: [id], onDelete: Cascade)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+}
+
+enum TipoContaReceber {
+  PARCELA
+  POR_ETAPA
+  SINAL
+  MEDICAO
+  OUTROS
+}
+
+enum StatusContaReceber {
+  PENDENTE
+  RECEBIDO
+  VENCIDO
+  CANCELADO
+}
+
+model ContaReceber {
+  id              String             @id @default(uuid())
+  descricao       String
+  valor           Float
+  dataVencimento  DateTime
+  dataRecebimento DateTime?
+  status          StatusContaReceber @default(PENDENTE)
+  tipo            TipoContaReceber   @default(PARCELA)
+  etapaVinculada  EtapaObra?
+  observacao      String?
+  clienteId       String?
+  cliente         Cliente?           @relation(fields: [clienteId], references: [id])
+  obraId          String
+  obra            Obra               @relation(fields: [obraId], references: [id])
+  usuarioId       String
+  usuario         Usuario            @relation(fields: [usuarioId], references: [id])
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
 }
